@@ -1,12 +1,14 @@
 use self::grid::Tile;
-use crate::game::grid::RoguePosition;
 use crate::game::resources::Room;
+use crate::game::rogue::handle_rogue_walk;
 use bevy::prelude::*;
 use constants::TILE_INTERVAL;
+use rogue::spawn_rogue;
 
-mod constants;
+pub mod constants;
 pub mod grid;
-mod resources;
+pub mod resources;
+pub mod rogue;
 
 pub struct GamePlugin;
 
@@ -19,7 +21,7 @@ impl Plugin for GamePlugin {
             east: 50,
         });
         app.add_systems(Startup, (setup, spawn_rooms, spawn_rogue).chain());
-        app.add_systems(Update, handle_camera_movement);
+        app.add_systems(Update, (handle_camera_movement, handle_rogue_walk));
     }
 }
 
@@ -44,25 +46,6 @@ fn spawn_rooms(
             ));
         }
     }
-}
-
-fn spawn_rogue(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let position = RoguePosition::new(32, 8);
-    let (gx, gy) = position.gx_gy();
-    let tile = Tile::new(gx, gy);
-    let avatar_width = tile.width();
-    let avatar_depth = tile.depth() * 0.2;
-    let avatar_height = 1.0;
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(avatar_width, avatar_height, avatar_depth))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-        Transform::from_translation(tile.center()),
-        position,
-    ));
 }
 
 fn setup(
