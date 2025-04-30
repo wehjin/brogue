@@ -123,9 +123,9 @@ fn handle_camera_movement(
     } else if keyboard_input.pressed(KeyCode::ArrowDown) {
         Some(Vec3::new(0.0, 0.0, STEP))
     } else if keyboard_input.pressed(KeyCode::PageUp) {
-        Some(Vec3::new(0.0, -STEP, 0.0))
-    } else if keyboard_input.pressed(KeyCode::PageDown) {
         Some(Vec3::new(0.0, STEP, 0.0))
+    } else if keyboard_input.pressed(KeyCode::PageDown) {
+        Some(Vec3::new(0.0, -STEP, 0.0))
     } else {
         None
     };
