@@ -1,20 +1,27 @@
-use crate::game::rogue::RoguePlugin;
-use crate::game::room::RoomPlugin;
+use crate::game::systems::compute_walkable_directions;
 use bevy::prelude::*;
+use systems::handle_rogue_walk;
+use systems::startup::spawn_rogue;
+use systems::startup::spawn_rooms;
 
+pub mod components;
 pub mod constants;
 pub mod grid;
-pub mod resources;
-pub mod rogue;
-pub mod room;
+pub mod systems;
 
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((RoomPlugin, RoguePlugin));
-        app.add_systems(Startup, setup);
-        app.add_systems(Update, handle_camera_movement);
+        app.add_systems(Startup, (setup, spawn_rooms, spawn_rogue));
+        app.add_systems(
+            Update,
+            (
+                compute_walkable_directions,
+                handle_camera_movement,
+                handle_rogue_walk,
+            ),
+        );
     }
 }
 

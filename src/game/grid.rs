@@ -1,8 +1,8 @@
 use crate::game::constants::{GRID_SOUTH_WEST, TILE_CENTER_OFFSET, TILE_INTERVAL};
 use bevy::prelude::*;
-use std::ops::Add;
+use std::ops::{Add, AddAssign, Sub};
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum GridDirection {
     North,
     NorthEast,
@@ -14,27 +14,62 @@ pub enum GridDirection {
     NorthWest,
 }
 
-impl GridDirection {
-    pub fn to_vec(&self) -> GridVec {
-        match self {
-            GridDirection::North => GridVec::new(1, 0),
-            GridDirection::NorthEast => GridVec::new(1, 1),
-            GridDirection::East => GridVec::new(0, 1),
-            GridDirection::SouthEast => GridVec::new(-1, 1),
-            GridDirection::South => GridVec::new(-1, 0),
-            GridDirection::SouthWest => GridVec::new(-1, -1),
-            GridDirection::West => GridVec::new(0, -1),
-            GridDirection::NorthWest => GridVec::new(1, -1),
+impl GridDirection {}
+
+impl TryFrom<GridOffset> for GridDirection {
+    type Error = &'static str;
+
+    fn try_from(value: GridOffset) -> std::result::Result<Self, Self::Error> {
+        match value {
+            GridOffset::NORTH => Ok(GridDirection::North),
+            GridOffset::NORTH_EAST => Ok(GridDirection::NorthEast),
+            GridOffset::EAST => Ok(GridDirection::East),
+            GridOffset::SOUTH_EAST => Ok(GridDirection::SouthEast),
+            GridOffset::SOUTH => Ok(GridDirection::South),
+            GridOffset::SOUTH_WEST => Ok(GridDirection::SouthWest),
+            GridOffset::WEST => Ok(GridDirection::West),
+            GridOffset::NORTH_WEST => Ok(GridDirection::NorthWest),
+            _ => Err("invalid offset"),
         }
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct GridVec {
+#[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
+pub struct GridOffset {
     pub gx: i32,
     pub gy: i32,
 }
-impl Add for GridVec {
+impl GridOffset {
+    pub const fn new(gx: i32, gy: i32) -> Self {
+        Self { gx, gy }
+    }
+
+    pub const NORTH: Self = Self::new(0, 1);
+    pub const NORTH_EAST: Self = Self::new(1, 1);
+    pub const EAST: Self = Self::new(1, 0);
+    pub const SOUTH_EAST: Self = Self::new(1, -1);
+    pub const SOUTH: Self = Self::new(0, -1);
+    pub const SOUTH_WEST: Self = Self::new(-1, -1);
+    pub const WEST: Self = Self::new(-1, 0);
+    pub const NORTH_WEST: Self = Self::new(-1, 1);
+}
+
+impl From<GridDirection> for GridOffset {
+    fn from(value: GridDirection) -> Self {
+        match value {
+            GridDirection::North => GridOffset::NORTH,
+            GridDirection::NorthEast => GridOffset::NORTH_EAST,
+            GridDirection::East => GridOffset::EAST,
+            GridDirection::SouthEast => GridOffset::SOUTH_EAST,
+            GridDirection::South => GridOffset::SOUTH,
+            GridDirection::SouthWest => GridOffset::SOUTH_WEST,
+            GridDirection::West => GridOffset::WEST,
+            GridDirection::NorthWest => GridOffset::NORTH_WEST,
+        }
+    }
+}
+
+impl Add for GridOffset {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -45,18 +80,31 @@ impl Add for GridVec {
     }
 }
 
-impl GridVec {
-    pub fn new(gx: i32, gy: i32) -> Self {
-        Self { gx, gy }
+impl AddAssign for GridOffset {
+    fn add_assign(&mut self, rhs: Self) {
+        self.gx += rhs.gx;
+        self.gy += rhs.gy;
+    }
+}
+
+impl Sub for GridOffset {
+    type Output = GridOffset;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        GridOffset {
+            gx: self.gx - rhs.gx,
+            gy: self.gy - rhs.gy,
+        }
     }
 }
 
 pub struct Tile {
-    south_west: Vec3,
+    pub grid_offset: GridOffset,
+    pub south_west: Vec3,
 }
 
-impl From<GridVec> for Tile {
-    fn from(value: GridVec) -> Self {
+impl From<GridOffset> for Tile {
+    fn from(value: GridOffset) -> Self {
         Tile::new(value.gx, value.gy)
     }
 }
@@ -82,6 +130,7 @@ impl Tile {
             -(gy as f32) * TILE_INTERVAL.y,
         );
         Tile {
+            grid_offset: GridOffset::new(gx, gy),
             south_west: GRID_SOUTH_WEST + offset,
         }
     }
