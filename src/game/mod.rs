@@ -1,50 +1,20 @@
-use self::grid::Tile;
-use crate::game::resources::Room;
-use crate::game::rogue::handle_rogue_walk;
+use crate::game::rogue::RoguePlugin;
+use crate::game::room::RoomPlugin;
 use bevy::prelude::*;
-use constants::TILE_INTERVAL;
-use rogue::spawn_rogue;
 
 pub mod constants;
 pub mod grid;
 pub mod resources;
 pub mod rogue;
+pub mod room;
 
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Room {
-            south: 7,
-            north: 12,
-            west: 30,
-            east: 50,
-        });
-        app.add_systems(Startup, (setup, spawn_rooms, spawn_rogue).chain());
-        app.add_systems(Update, (handle_camera_movement, handle_rogue_walk));
-    }
-}
-
-fn spawn_rooms(
-    room: Res<Room>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // floor base
-    let floor_material = materials.add(Color::WHITE);
-    const WIDTH: f32 = TILE_INTERVAL.x * 0.78;
-    const HEIGHT: f32 = TILE_INTERVAL.y * 0.91;
-    for gy in room.south_to_north() {
-        for gx in room.west_to_east() {
-            let tile = Tile::new(gx, gy);
-            commands.spawn((
-                Mesh3d(meshes.add(Rectangle::new(WIDTH, HEIGHT))),
-                MeshMaterial3d(floor_material.clone()),
-                Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
-                    .with_translation(tile.center()),
-            ));
-        }
+        app.add_plugins((RoomPlugin, RoguePlugin));
+        app.add_systems(Startup, setup);
+        app.add_systems(Update, handle_camera_movement);
     }
 }
 

@@ -1,6 +1,14 @@
 use crate::game::grid::{GridDirection, GridVec, Tile};
 use bevy::prelude::*;
 
+pub struct RoguePlugin;
+impl Plugin for RoguePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn_rogue);
+        app.add_systems(Update, handle_rogue_walk);
+    }
+}
+
 #[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
 pub struct RoguePosition(GridVec);
 
