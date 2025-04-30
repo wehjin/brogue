@@ -1,11 +1,11 @@
 use bevy::prelude::*;
-use game::HelloPlugin;
+use game::GamePlugin;
 
 mod game;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(HelloPlugin)
+        .add_plugins(GamePlugin)
         .run();
 }
