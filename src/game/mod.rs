@@ -1,39 +1,30 @@
+use crate::game::resources::Room;
 use bevy::prelude::*;
-use std::ops::RangeInclusive;
+use constants::{GRID_SOUTH_WEST, TILE_CENTER_OFFSET, TILE_INTERVAL};
+
+mod constants;
+mod resources;
+
+pub struct GamePlugin;
+
+impl Plugin for GamePlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(Room {
+            south: 7,
+            north: 12,
+            west: 30,
+            east: 50,
+        });
+        app.add_systems(Startup, (setup, spawn_rooms).chain());
+        app.add_systems(Update, handle_camera_movement);
+    }
+}
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
 struct GridCoord {
     x: i32,
     y: i32,
 }
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-struct Room {
-    rows: RangeInclusive<i32>,
-    cols: RangeInclusive<i32>,
-}
-
-const BIG_ROOM: Room = Room {
-    rows: 10..=69,
-    cols: 5..=18,
-};
-
-pub struct GamePlugin;
-
-impl Plugin for GamePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup, spawn_rooms).chain());
-        app.add_systems(Update, handle_camera_movement);
-    }
-}
-
-const HALF_TILE_INTERVAL: Vec2 = Vec2::new(0.25, 0.5);
-const TILE_INTERVAL: Vec2 = Vec2::new(HALF_TILE_INTERVAL.x * 2.0, HALF_TILE_INTERVAL.y * 2.0);
-const TILE_CENTER_OFFSET: Vec3 = Vec3::new(HALF_TILE_INTERVAL.x, 0.0, -HALF_TILE_INTERVAL.y);
-const HALF_GRID_SIZE: (u32, u32) = (40, 11);
-const GRID_WEST: f32 = -(HALF_GRID_SIZE.0 as f32) * TILE_INTERVAL.x;
-const GRID_SOUTH: f32 = (HALF_GRID_SIZE.1 as f32) * TILE_INTERVAL.y;
-const GRID_SOUTH_WEST: Vec3 = Vec3::new(GRID_WEST, 0.001, GRID_SOUTH);
 
 struct Tile {
     south_west: Vec3,
@@ -58,16 +49,17 @@ impl Tile {
 }
 
 fn spawn_rooms(
+    room: Res<Room>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // floor base
     let floor_material = materials.add(Color::WHITE);
-    const WIDTH:f32 =  TILE_INTERVAL.x * 0.78;
-    const HEIGHT:f32 =  TILE_INTERVAL.y * 0.91;
-    for gy in 7..15 {
-        for gx in 30..50 {
+    const WIDTH: f32 = TILE_INTERVAL.x * 0.78;
+    const HEIGHT: f32 = TILE_INTERVAL.y * 0.91;
+    for gy in room.south_to_north() {
+        for gx in room.west_to_east() {
             let tile = Tile::new(gx, gy);
             commands.spawn((
                 Mesh3d(meshes.add(Rectangle::new(WIDTH, HEIGHT))),
@@ -113,7 +105,7 @@ fn setup(
     // camera
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 22.0, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 29.0, 16.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
 
