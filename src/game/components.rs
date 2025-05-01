@@ -6,6 +6,12 @@ use std::ops::RangeInclusive;
 #[derive(Component)]
 pub struct Rogue;
 
+#[derive(Component)]
+pub struct Amulet;
+
+#[derive(Component)]
+pub struct GroundItem;
+
 #[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
 pub enum TileType {
     Floor,
