@@ -1,8 +1,8 @@
 use crate::game::components::{
-    Amulet, GroundItem, Rogue, RoomBounds, TileType, WalkableDirections,
+    Amulet, GroundItem, Pack, Rogue, RoomBounds, TileType, WalkableDirections, WalkableItems,
 };
 use crate::game::constants::TILE_INTERVAL;
-use crate::game::grid::{GridOffset, Tile};
+use crate::game::values::grid::{GridOffset, Tile};
 use bevy::core_pipeline::prepass::DepthPrepass;
 use bevy::prelude::*;
 
@@ -19,7 +19,9 @@ pub fn spawn_rogue(
     commands.spawn((
         Rogue,
         grid_offset,
+        Pack::default(),
         WalkableDirections::default(),
+        WalkableItems::default(),
         Mesh3d(meshes.add(Cuboid::new(avatar_width, avatar_height, avatar_depth))),
         MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
         Transform::from_translation(tile.center()),

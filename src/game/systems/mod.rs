@@ -1,11 +1,14 @@
-use crate::game::components::{Rogue, TileType, WalkableDirections};
-use crate::game::grid::{GridDirection, GridOffset, Tile};
+use crate::game::components::{
+    GroundItem, Pack, Rogue, TileType, WalkableDirections, WalkableItems,
+};
+use crate::game::values::grid::{GridDirection, GridOffset, Tile};
+use crate::game::values::pack_item::PackItem;
 use bevy::prelude::*;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub mod startup;
 
-pub fn compute_walkable_directions(
+pub fn update_walkable_directions(
     rogue: Single<(&GridOffset, &mut WalkableDirections), With<Rogue>>,
     tiles: Query<(&GridOffset, &TileType)>,
 ) {
@@ -26,14 +29,47 @@ pub fn compute_walkable_directions(
     }
 }
 
+pub fn update_walkable_items(
+    rogue: Single<(&GridOffset, &mut WalkableItems), With<Rogue>>,
+    items: Query<(Entity, &GridOffset), With<GroundItem>>,
+) {
+    let (rogue_offset, mut touchable_items) = rogue.into_inner();
+    let mut new_items = HashMap::new();
+    for (item_entity, item_offset) in items.iter() {
+        let delta = *item_offset - *rogue_offset;
+        let grid_direction = GridDirection::try_from(delta);
+        if let Ok(grid_direction) = grid_direction {
+            new_items.insert(grid_direction, item_entity);
+        }
+    }
+    if new_items != touchable_items.0 {
+        touchable_items.0 = new_items;
+    }
+}
+
 pub fn handle_rogue_walk(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    rogue: Single<(&mut GridOffset, &mut Transform, &WalkableDirections), With<Rogue>>,
+    rogue: Single<
+        (
+            &mut GridOffset,
+            &mut Transform,
+            &WalkableDirections,
+            &WalkableItems,
+            &mut Pack,
+        ),
+        With<Rogue>,
+    >,
+    mut commands: Commands,
 ) {
     if let Some(direction) = check_walk_keys(keyboard_input) {
-        let (mut grid_offset, mut transform, walkable) = rogue.into_inner();
-        if walkable.0.contains(&direction) {
-            *grid_offset += GridOffset::from(direction);
+        let (mut rogue_offset, mut transform, directions, items, mut pack) = rogue.into_inner();
+        if directions.0.contains(&direction) {
+            if let Some(item_entity) = items.0.get(&direction) {
+                commands.entity(*item_entity).despawn();
+                pack.items.push(PackItem::Amulet);
+                println!("Pack size {}", pack.items.len());
+            }
+            *rogue_offset += GridOffset::from(direction);
             transform.translation += Tile::step_vec(direction);
         }
     }

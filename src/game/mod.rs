@@ -1,34 +1,11 @@
-use crate::game::systems::compute_walkable_directions;
-use crate::game::systems::startup::spawn_items;
 use bevy::prelude::*;
-use startup::setup;
-use systems::startup::spawn_rogue;
-use systems::startup::spawn_rooms;
-use systems::{handle_rogue_walk, startup};
 
 pub mod components;
 pub mod constants;
-pub mod grid;
+pub mod plugin;
+
 pub mod systems;
-
-pub struct GamePlugin;
-
-impl Plugin for GamePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Startup,
-            (setup, spawn_rooms, spawn_items, spawn_rogue),
-        );
-        app.add_systems(
-            Update,
-            (
-                compute_walkable_directions,
-                handle_camera_movement,
-                handle_rogue_walk,
-            ),
-        );
-    }
-}
+pub mod values;
 
 fn handle_camera_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,

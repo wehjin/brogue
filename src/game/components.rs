@@ -1,10 +1,16 @@
-use crate::game::grid::GridDirection;
+use crate::game::values::grid::GridDirection;
+use crate::game::values::pack_item::PackItem;
 use bevy::prelude::*;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
 
 #[derive(Component)]
 pub struct Rogue;
+
+#[derive(Component, Default)]
+pub struct Pack {
+    pub items: Vec<PackItem>,
+}
 
 #[derive(Component)]
 pub struct Amulet;
@@ -19,6 +25,9 @@ pub enum TileType {
 
 #[derive(Component, Clone, Eq, PartialEq, Debug, Default)]
 pub struct WalkableDirections(pub HashSet<GridDirection>);
+
+#[derive(Component, Clone, Eq, PartialEq, Debug, Default)]
+pub struct WalkableItems(pub HashMap<GridDirection, Entity>);
 
 #[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
 pub struct RoomBounds {
