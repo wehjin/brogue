@@ -11,6 +11,11 @@ pub struct Rogue;
 pub struct Pack {
     pub items: Vec<PackItem>,
 }
+impl Pack {
+    pub fn find_item(&self, search: PackItem) -> Option<&PackItem> {
+        self.items.iter().find(|&item| *item == search)
+    }
+}
 
 #[derive(Component)]
 pub struct Amulet;
@@ -21,6 +26,7 @@ pub struct GroundItem;
 #[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
 pub enum TileType {
     Floor,
+    Stairs,
 }
 
 #[derive(Component, Clone, Eq, PartialEq, Debug, Default)]

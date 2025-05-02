@@ -93,7 +93,7 @@ impl Sub for GridOffset {
 }
 
 pub struct Tile {
-    pub grid_offset: GridOffset,
+    pub grid_position: GridOffset,
     pub south_west: Vec3,
 }
 
@@ -124,7 +124,7 @@ impl Tile {
             -(gy as f32) * TILE_INTERVAL.y,
         );
         Tile {
-            grid_offset: GridOffset::new(gx, gy),
+            grid_position: GridOffset::new(gx, gy),
             south_west: GRID_SOUTH_WEST + offset,
         }
     }

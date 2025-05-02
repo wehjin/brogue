@@ -3,6 +3,7 @@ use crate::game::components::{
 };
 use crate::game::constants::TILE_INTERVAL;
 use crate::game::values::grid::{GridOffset, Tile};
+use bevy::color::palettes::css;
 use bevy::core_pipeline::prepass::DepthPrepass;
 use bevy::prelude::*;
 
@@ -42,7 +43,7 @@ pub fn spawn_items(
     commands.spawn((
         Amulet,
         GroundItem,
-        tile.grid_offset,
+        tile.grid_position,
         Mesh3d(meshes.add(Rectangle::new(TILE_INTERVAL.x, TILE_INTERVAL.y))),
         MeshMaterial3d(amulet_material),
         Transform::from_translation(tile.center() + Vec3::new(0.0, 0.001, 0.0))
@@ -55,30 +56,41 @@ pub fn spawn_rooms(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let bounds = RoomBounds {
+    let floor_material = materials.add(Color::WHITE);
+    let stairs_material = materials.add(StandardMaterial::from_color(css::GOLDENROD));
+
+    // layout
+    let room_bounds = RoomBounds {
         south: 7,
         north: 12,
         west: 30,
         east: 50,
     };
-    // floor base
-    let floor_material = materials.add(Color::WHITE);
+    let stairs_position = GridOffset::new(48, 10);
 
     const WIDTH: f32 = TILE_INTERVAL.x * 0.78;
     const HEIGHT: f32 = TILE_INTERVAL.y * 0.91;
-    for gy in bounds.south_to_north() {
-        for gx in bounds.west_to_east() {
+    for gy in room_bounds.south_to_north() {
+        for gx in room_bounds.west_to_east() {
             let tile = Tile::new(gx, gy);
+
+            let (material, tile_type) = if tile.grid_position == stairs_position {
+                (stairs_material.clone(), TileType::Stairs)
+            } else {
+                (floor_material.clone(), TileType::Floor)
+            };
             commands.spawn((
-                TileType::Floor,
-                tile.grid_offset,
+                tile_type,
+                tile.grid_position,
                 Mesh3d(meshes.add(Rectangle::new(WIDTH, HEIGHT))),
-                MeshMaterial3d(floor_material.clone()),
+                MeshMaterial3d(material),
                 Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
                     .with_translation(tile.center()),
             ));
         }
     }
+
+    // stairs
 }
 
 pub fn setup(

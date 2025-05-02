@@ -15,7 +15,7 @@ pub fn update_walkable_directions(
     let mut new_directions = HashSet::new();
     for (tile_offset, tile_type) in tiles.iter() {
         match tile_type {
-            TileType::Floor => {
+            TileType::Floor | TileType::Stairs => {
                 let tile_delta = *tile_offset - *rogue_offset;
                 if let Ok(direction) = GridDirection::try_from(tile_delta) {
                     new_directions.insert(direction);
