@@ -1,10 +1,8 @@
 use crate::game;
-use crate::game::systems::startup::{setup, spawn_items, spawn_rogue, spawn_rooms};
-use crate::game::systems::{
-    update_walkable_items, update_walkable_directions, handle_rogue_walk,
-};
+use crate::game::systems::setup::{setup, spawn_items, spawn_rogue, spawn_rooms};
 use bevy::prelude::*;
 use game::handle_camera_movement;
+use crate::game::systems::walk::{handle_rogue_walk, update_walkable_directions, update_walkable_items};
 
 pub struct GamePlugin;
 

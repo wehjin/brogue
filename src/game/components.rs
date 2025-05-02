@@ -7,7 +7,7 @@ use std::ops::RangeInclusive;
 #[derive(Component)]
 pub struct Rogue;
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub struct Pack {
     pub items: Vec<PackItem>,
 }
