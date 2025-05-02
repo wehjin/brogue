@@ -34,7 +34,7 @@ impl TryFrom<GridOffset> for GridDirection {
     }
 }
 
-#[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Component, Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct GridOffset {
     pub gx: i32,
     pub gy: i32,

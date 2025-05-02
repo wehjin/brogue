@@ -7,6 +7,11 @@ use std::ops::RangeInclusive;
 #[derive(Component)]
 pub struct Rogue;
 
+#[derive(Component, Copy, Clone, Eq, PartialEq, Debug)]
+pub enum MonsterType {
+    Aquatar,
+}
+
 #[derive(Component, Debug, Default)]
 pub struct Pack {
     pub items: Vec<PackItem>,

@@ -1,5 +1,5 @@
 use crate::game::components::{
-    GroundItem, Pack, Rogue, TileType, WalkableDirections, WalkableItems,
+    GroundItem, MonsterType, Pack, Rogue, TileType, WalkableDirections, WalkableItems,
 };
 use crate::game::values::grid::{GridDirection, GridOffset, Tile};
 use crate::game::values::pack_item::PackItem;
@@ -10,15 +10,18 @@ use std::collections::{HashMap, HashSet};
 pub fn update_walkable_directions(
     rogue: Single<(&GridOffset, &mut WalkableDirections), With<Rogue>>,
     tiles: Query<(&GridOffset, &TileType)>,
+    monsters: Query<&GridOffset, With<MonsterType>>,
 ) {
+    let monster_positions = monsters.iter().collect::<HashSet<_>>();
     let (rogue_offset, mut walkable_directions) = rogue.into_inner();
     let mut new_directions = HashSet::new();
     for (tile_offset, tile_type) in tiles.iter() {
         match tile_type {
             TileType::Floor | TileType::Stairs => {
-                let tile_delta = *tile_offset - *rogue_offset;
-                if let Ok(direction) = GridDirection::try_from(tile_delta) {
-                    new_directions.insert(direction);
+                if let Ok(direction) = GridDirection::try_from(*tile_offset - *rogue_offset) {
+                    if !monster_positions.contains(tile_offset) {
+                        new_directions.insert(direction);
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 use crate::game::components::{
-    Amulet, GroundItem, Pack, Rogue, RoomBounds, TileType, WalkableDirections, WalkableItems,
+    Amulet, GroundItem, MonsterType, Pack, Rogue, RoomBounds, TileType, WalkableDirections,
+    WalkableItems,
 };
 use crate::game::constants::TILE_INTERVAL;
 use crate::game::values::grid::{GridOffset, Tile};
@@ -51,6 +52,22 @@ pub fn spawn_items(
             .with_scale(Vec3::splat(0.5)),
     ));
 }
+pub fn spawn_monsters(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    let monster_position = GridOffset::new(31, 10);
+    let tile = Tile::from(monster_position);
+    let aquatar_mesh = asset_server.load("aquatar.stl");
+    commands.spawn((
+        MonsterType::Aquatar,
+        monster_position,
+        Mesh3d(aquatar_mesh),
+        MeshMaterial3d(materials.add(StandardMaterial::from_color(css::CRIMSON))),
+        Transform::from_scale(Vec3::splat(0.008)).with_translation(tile.center()),
+    ));
+}
 pub fn spawn_rooms(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -93,7 +110,7 @@ pub fn spawn_rooms(
     // stairs
 }
 
-pub fn setup(
+pub fn spawn_lights_camera(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,

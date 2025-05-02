@@ -1,5 +1,5 @@
 use crate::game;
-use crate::game::systems::setup::{setup, spawn_items, spawn_rogue, spawn_rooms};
+use crate::game::systems::setup::{spawn_lights_camera, spawn_items, spawn_monsters, spawn_rogue, spawn_rooms};
 use crate::game::systems::stairs::handle_keyboard_ascent;
 use crate::game::systems::walk::{
     handle_rogue_walk, update_walkable_directions, update_walkable_items,
@@ -11,7 +11,10 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup, spawn_rooms, spawn_items, spawn_rogue));
+        app.add_systems(
+            Startup,
+            (spawn_lights_camera, spawn_rooms, spawn_items, spawn_rogue, spawn_monsters),
+        );
         app.add_systems(
             Update,
             (
