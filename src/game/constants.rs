@@ -1,5 +1,7 @@
-use bevy::math::{Vec2, Vec3};
 use crate::game::values::grid::GridOffset;
+use bevy::math::{Vec2, Vec3};
+
+pub const INIT_HP: isize = 12;
 
 pub const HALF_TILE_INTERVAL: Vec2 = Vec2::new(0.25, 0.5);
 pub const TILE_INTERVAL: Vec2 = Vec2::new(HALF_TILE_INTERVAL.x * 2.0, HALF_TILE_INTERVAL.y * 2.0);

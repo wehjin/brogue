@@ -1,33 +1,37 @@
 use crate::game::components::{
-    GroundItem, MonsterType, Pack, Rogue, TileType, WalkableDirections, WalkableItems,
+    GroundItem, MonsterType, Rogue, RogueHitTarget, RoguePack, TileType, WalkDestinations,
+    WalkableItems,
 };
 use crate::game::values::grid::{GridDirection, GridOffset, Tile};
 use crate::game::values::pack_item::PackItem;
+use crate::game::values::WalkDestination;
 use bevy::input::ButtonInput;
 use bevy::prelude::{Commands, Entity, KeyCode, Query, Res, Single, Transform, With};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-pub fn update_walkable_directions(
-    rogue: Single<(&GridOffset, &mut WalkableDirections), With<Rogue>>,
-    tiles: Query<(&GridOffset, &TileType)>,
-    monsters: Query<&GridOffset, With<MonsterType>>,
+pub fn update_walk_destination(
+    query_rogue: Single<(&GridOffset, &mut WalkDestinations), With<Rogue>>,
+    query_tiles: Query<(&GridOffset, &TileType)>,
+    query_monsters: Query<(&GridOffset, Entity), With<MonsterType>>,
 ) {
-    let monster_positions = monsters.iter().collect::<HashSet<_>>();
-    let (rogue_offset, mut walkable_directions) = rogue.into_inner();
-    let mut new_directions = HashSet::new();
-    for (tile_offset, tile_type) in tiles.iter() {
+    let monster_entities = query_monsters.iter().collect::<HashMap<_, _>>();
+    let (rogue_offset, mut walk_destinations) = query_rogue.into_inner();
+    let mut new_destinations = HashMap::new();
+    for (tile_offset, tile_type) in query_tiles.iter() {
         match tile_type {
             TileType::Floor | TileType::Stairs => {
                 if let Ok(direction) = GridDirection::try_from(*tile_offset - *rogue_offset) {
-                    if !monster_positions.contains(tile_offset) {
-                        new_directions.insert(direction);
-                    }
+                    let destination = WalkDestination {
+                        position: *tile_offset,
+                        monster: monster_entities.get(tile_offset).cloned(),
+                    };
+                    new_destinations.insert(direction, destination);
                 }
             }
         }
     }
-    if new_directions != walkable_directions.0 {
-        walkable_directions.0 = new_directions;
+    if new_destinations != walk_destinations.0 {
+        walk_destinations.0 = new_destinations;
     }
 }
 
@@ -51,33 +55,37 @@ pub fn update_walkable_items(
 
 pub fn handle_rogue_walk(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    rogue: Single<
+    query_rogue: Single<
         (
             &mut GridOffset,
             &mut Transform,
-            &WalkableDirections,
+            &WalkDestinations,
             &WalkableItems,
-            &mut Pack,
+            &mut RoguePack,
         ),
         With<Rogue>,
     >,
     mut commands: Commands,
 ) {
-    if let Some(direction) = check_walk_keys(keyboard_input) {
-        let (mut rogue_offset, mut transform, directions, items, mut pack) = rogue.into_inner();
-        if directions.0.contains(&direction) {
-            if let Some(item_entity) = items.0.get(&direction) {
-                commands.entity(*item_entity).despawn();
-                pack.items.push(PackItem::Amulet);
-                println!("{:?}", pack.as_ref());
+    if let Some(walk_direction) = walk_direction(keyboard_input) {
+        let (mut rogue_position, mut transform, walk_destination, items, mut pack) =
+            query_rogue.into_inner();
+        if let Some(walk_destination) = walk_destination.0.get(&walk_direction) {
+            if let Some(monster_entity) = walk_destination.monster {
+                commands.entity(monster_entity).insert(RogueHitTarget);
+            } else {
+                if let Some(item_entity) = items.0.get(&walk_direction) {
+                    commands.entity(*item_entity).despawn();
+                    pack.items.push(PackItem::Amulet);
+                }
+                *rogue_position += GridOffset::from(walk_direction);
+                transform.translation += Tile::step_vec(walk_direction);
             }
-            *rogue_offset += GridOffset::from(direction);
-            transform.translation += Tile::step_vec(direction);
         }
     }
 }
 
-fn check_walk_keys(keyboard_input: Res<ButtonInput<KeyCode>>) -> Option<GridDirection> {
+fn walk_direction(keyboard_input: Res<ButtonInput<KeyCode>>) -> Option<GridDirection> {
     if keyboard_input.just_pressed(KeyCode::KeyK) {
         Some(GridDirection::North)
     } else if keyboard_input.just_pressed(KeyCode::KeyJ) {

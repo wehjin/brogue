@@ -1,4 +1,4 @@
-use crate::game::components::{Pack, Rogue, TileType};
+use crate::game::components::{RoguePack, Rogue, TileType};
 use crate::game::values::grid::GridOffset;
 use crate::game::values::pack_item::PackItem;
 use bevy::prelude::*;
@@ -6,7 +6,7 @@ use std::process::exit;
 
 pub fn handle_keyboard_ascent(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    rogue: Single<(&GridOffset, &Pack), With<Rogue>>,
+    rogue: Single<(&GridOffset, &RoguePack), With<Rogue>>,
     query_tiles: Query<(&GridOffset, &TileType)>,
 ) {
     if just_pressed_angle_bracket_right(keyboard_input) {

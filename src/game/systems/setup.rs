@@ -1,6 +1,6 @@
 use crate::game::components::{
-    Amulet, GroundItem, MonsterType, Pack, Rogue, RoomBounds, TileType, WalkableDirections,
-    WalkableItems,
+    Amulet, RogueEquipped, GroundItem, MonsterHealth, MonsterType, Rogue, RogueHealth, RoguePack,
+    RoomBounds, TileType, WalkDestinations, WalkableItems, Weapon, WeaponType,
 };
 use crate::game::constants::TILE_INTERVAL;
 use crate::game::values::grid::{GridOffset, Tile};
@@ -13,21 +13,25 @@ pub fn spawn_rogue(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let grid_offset = GridOffset::new(32, 8);
-    let tile: Tile = grid_offset.into();
+    let rogue_position = GridOffset::new(32, 8);
+    let tile: Tile = rogue_position.into();
     let avatar_width = tile.width();
     let avatar_depth = tile.depth() * 0.2;
     let avatar_height = 1.0;
     commands.spawn((
         Rogue,
-        grid_offset,
-        Pack::default(),
-        WalkableDirections::default(),
+        RogueHealth::default(),
+        rogue_position,
+        RoguePack::default(),
+        WalkDestinations::default(),
         WalkableItems::default(),
         Mesh3d(meshes.add(Cuboid::new(avatar_width, avatar_height, avatar_depth))),
         MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
         Transform::from_translation(tile.center()),
     ));
+}
+pub fn spawn_objects(mut commands: Commands) {
+    commands.spawn((Weapon, WeaponType::Mace, RogueEquipped));
 }
 pub fn spawn_items(
     mut commands: Commands,
@@ -57,12 +61,16 @@ pub fn spawn_monsters(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    let monster_type = MonsterType::Aquator;
     let monster_position = GridOffset::new(31, 10);
+    let monster_health = MonsterHealth::from(monster_type);
+
     let tile = Tile::from(monster_position);
     let aquatar_mesh = asset_server.load("aquatar.stl");
     commands.spawn((
-        MonsterType::Aquatar,
+        monster_type,
         monster_position,
+        monster_health,
         Mesh3d(aquatar_mesh),
         MeshMaterial3d(materials.add(StandardMaterial::from_color(css::CRIMSON))),
         Transform::from_scale(Vec3::splat(0.008)).with_translation(tile.center()),
