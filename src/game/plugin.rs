@@ -8,12 +8,15 @@ use crate::game::systems::walk::{
     handle_rogue_walk, update_walk_destination, update_walkable_items,
 };
 use bevy::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::plugin::EntropyPlugin;
 use game::handle_camera_movement;
 
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(EntropyPlugin::<WyRand>::default());
         app.add_systems(
             Startup,
             (

@@ -1,6 +1,7 @@
 use crate::game::components::{
-    Amulet, RogueEquipped, GroundItem, MonsterHealth, MonsterType, Rogue, RogueHealth, RoguePack,
-    RoomBounds, TileType, WalkDestinations, WalkableItems, Weapon, WeaponType,
+    Amulet, GroundItem, MonsterHealth, MonsterType, Rogue, RogueBuffs, RogueEquipped, RogueHealth,
+    RoguePack, RoomBounds, TileType, WalkDestinations, WalkableItems, Weapon, WeaponBuffs,
+    WeaponType,
 };
 use crate::game::constants::TILE_INTERVAL;
 use crate::game::values::grid::{GridOffset, Tile};
@@ -21,6 +22,7 @@ pub fn spawn_rogue(
     commands.spawn((
         Rogue,
         RogueHealth::default(),
+        RogueBuffs::default(),
         rogue_position,
         RoguePack::default(),
         WalkDestinations::default(),
@@ -31,7 +33,12 @@ pub fn spawn_rogue(
     ));
 }
 pub fn spawn_objects(mut commands: Commands) {
-    commands.spawn((Weapon, WeaponType::Mace, RogueEquipped));
+    commands.spawn((
+        Weapon,
+        WeaponType::Mace,
+        WeaponBuffs::default(),
+        RogueEquipped,
+    ));
 }
 pub fn spawn_items(
     mut commands: Commands,
